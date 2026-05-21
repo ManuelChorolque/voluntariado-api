@@ -1,7 +1,7 @@
-ï»¿using AutoMapper;
+using AutoMapper;
 using DOMINIO.Entidades;
 using DOMINIO.Interfaces;
-using DOMINIO.Enumerados;
+using DOMINIO.Enumeradores;
 using APLICACION.DTOs.Actividadades;
 using APLICACION.Utilidades;
 
@@ -29,11 +29,11 @@ namespace APLICACION.CasosUso.Actividades
             // Validar nombre
             ValidadorCampos.ValidarCampoRequerido(dto.Nombre, nameof(dto.Nombre));
 
-            // Validar que la organizaciÃ³n existe
+            // Validar que la organización existe
             var organizacion = await _repositorioOrganizaciones.ObtenerPorIdAsync(dto.OrganizacionId);
             if (organizacion == null)
             {
-                throw new KeyNotFoundException($"No se encontrÃ³ la organizaciÃ³n con ID {dto.OrganizacionId}");
+                throw new KeyNotFoundException($"No se encontró la organización con ID {dto.OrganizacionId}");
             }
 
             // Validar fechas

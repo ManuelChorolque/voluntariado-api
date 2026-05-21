@@ -7,7 +7,7 @@ using APLICACION.DTOs.Horas;
 using APLICACION.DTOs.Organizaciones;
 using APLICACION.DTOs.Voluntarios;
 using DOMINIO.Entidades;
-using DOMINIO.Enumerados;
+using DOMINIO.Enumeradores;
 
 
 public class MappingProfile : Profile

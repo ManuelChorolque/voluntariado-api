@@ -1,4 +1,4 @@
-﻿using DOMINIO.Enumerados;
+using DOMINIO.Enumeradores;
 
 namespace DOMINIO.Entidades
 {

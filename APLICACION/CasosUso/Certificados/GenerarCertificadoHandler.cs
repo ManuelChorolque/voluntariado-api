@@ -1,7 +1,7 @@
-ï»¿using AutoMapper;
+using AutoMapper;
 using DOMINIO.Entidades;
 using DOMINIO.Interfaces;
-using DOMINIO.Enumerados;
+using DOMINIO.Enumeradores;
 using APLICACION.DTOs.Certificados;
 
 namespace APLICACION.CasosUso.Certificados
@@ -31,7 +31,7 @@ namespace APLICACION.CasosUso.Certificados
             var voluntario = await _repositorioVoluntarios.ObtenerPorIdAsync(dto.VoluntarioId);
             if (voluntario == null)
             {
-                throw new KeyNotFoundException($"No se encontrÃ³ el voluntario con ID {dto.VoluntarioId}");
+                throw new KeyNotFoundException($"No se encontró el voluntario con ID {dto.VoluntarioId}");
             }
 
             // Validar que si se proporciona ActividadId, la actividad exista
@@ -40,7 +40,7 @@ namespace APLICACION.CasosUso.Certificados
                 var actividad = await _repositorioActividades.ObtenerPorIdAsync(dto.ActividadId.Value);
                 if (actividad == null)
                 {
-                    throw new KeyNotFoundException($"No se encontrÃ³ la actividad con ID {dto.ActividadId}");
+                    throw new KeyNotFoundException($"No se encontró la actividad con ID {dto.ActividadId}");
                 }
             }
 

@@ -1,7 +1,7 @@
-﻿using AutoMapper;
+using AutoMapper;
 using DOMINIO.Entidades;
 using DOMINIO.Interfaces;
-using DOMINIO.Enumerados;
+using DOMINIO.Enumeradores;
 using APLICACION.DTOs.Voluntarios;
 using APLICACION.Utilidades;
 

@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using DOMINIO.Entidades;
-using DOMINIO.Enumerados;
+using DOMINIO.Enumeradores;
 using DOMINIO.Interfaces;
 using Infraestructura.Data;
 

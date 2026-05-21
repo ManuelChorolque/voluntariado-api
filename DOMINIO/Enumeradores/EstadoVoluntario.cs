@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DOMINIO.Enumerados
+namespace DOMINIO.Enumeradores
 {
     public enum EstadoVoluntario
     {

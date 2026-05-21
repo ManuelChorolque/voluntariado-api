@@ -1,5 +1,5 @@
 using DOMINIO.Entidades;
-using DOMINIO.Enumerados;
+using DOMINIO.Enumeradores;
 
 namespace Infraestructura.Data
 {
