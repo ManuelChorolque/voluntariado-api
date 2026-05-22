@@ -27,30 +27,39 @@ namespace APLICACION.CasosUso.Horas
 
         public async Task<HorasRespuestaDTO> Ejecutar(RegistrarHorasDTO dto)
         {
-            // Validar que el voluntario existe
-            var voluntario = await _repositorioVoluntarios.ObtenerPorIdAsync(dto.VoluntarioId);
-            if (voluntario == null)
-            {
-                throw new KeyNotFoundException($"No se encontró el voluntario con ID {dto.VoluntarioId}");
-            }
+            var voluntario = await ValidarHorasAsync(dto);
+            var horasDecimales = CalcularHoras(dto);
+            var horasVoluntariado = await GuardarRegistroAsync(dto, voluntario, horasDecimales);
+            await EnviarNotificacionAsync(voluntario, horasDecimales);
 
-            // Validar que la actividad existe
-            var actividad = await _repositorioActividades.ObtenerPorIdAsync(dto.ActividadId);
-            if (actividad == null)
-            {
-                throw new KeyNotFoundException($"No se encontró la actividad con ID {dto.ActividadId}");
-            }
+            return _mapper.Map<HorasRespuestaDTO>(horasVoluntariado);
+        }
 
-            // Validar fechas
+        private async Task<Voluntario> ValidarHorasAsync(RegistrarHorasDTO dto)
+        {
+            var voluntario = await _repositorioVoluntarios.ObtenerPorIdAsync(dto.VoluntarioId)
+                ?? throw new KeyNotFoundException($"No se encontró el voluntario con ID {dto.VoluntarioId}");
+
+            var actividad = await _repositorioActividades.ObtenerPorIdAsync(dto.ActividadId)
+                ?? throw new KeyNotFoundException($"No se encontró la actividad con ID {dto.ActividadId}");
+
             if (dto.FechaFin <= dto.FechaInicio)
-            {
                 throw new ArgumentException("La fecha de fin debe ser posterior a la fecha de inicio");
-            }
 
-            // Calcular horas
-            var horasDecimales = (decimal)(dto.FechaFin - dto.FechaInicio).TotalHours;
+            if (!CalculadoraHoras.EsHoraValida((decimal)(dto.FechaFin - dto.FechaInicio).TotalHours))
+                throw new ArgumentException("Las horas registradas no son válidas (deben ser entre 1 y 24)");
 
-            // Crear entidad de horas
+            return voluntario;
+        }
+
+        private static decimal CalcularHoras(RegistrarHorasDTO dto)
+        {
+            return CalculadoraHoras.RedondearHoras(
+                (decimal)(dto.FechaFin - dto.FechaInicio).TotalHours);
+        }
+
+        private async Task<HorasVoluntariado> GuardarRegistroAsync(RegistrarHorasDTO dto, Voluntario voluntario, decimal horasDecimales)
+        {
             var horasVoluntariado = new HorasVoluntariado
             {
                 VoluntarioId = dto.VoluntarioId,
@@ -63,17 +72,20 @@ namespace APLICACION.CasosUso.Horas
                 FechaRegistro = DateTime.UtcNow
             };
 
-            // Guardar
             await _repositorioHoras.AgregarAsync(horasVoluntariado);
 
-            // Actualizar total de horas del voluntario
             voluntario.HorasTotales += horasDecimales;
             await _repositorioVoluntarios.ActualizarAsync(voluntario);
 
             await _repositorioHoras.GuardarCambiosAsync();
 
-            // Retornar DTO
-            return _mapper.Map<HorasRespuestaDTO>(horasVoluntariado);
+            return horasVoluntariado;
+        }
+
+        private async Task EnviarNotificacionAsync(Voluntario voluntario, decimal horas)
+        {
+            Console.WriteLine($"[NOTIFICACIÓN] Horas registradas para {voluntario.Nombre} {voluntario.Apellido}: {horas}h");
+            await Task.CompletedTask;
         }
     }
 }
