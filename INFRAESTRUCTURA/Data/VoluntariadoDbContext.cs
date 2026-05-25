@@ -16,16 +16,17 @@ public class VoluntariadoDbContext : DbContext
     public DbSet<Certificado> Certificados { get; set; } = null!;
     public DbSet<Organizacion> Organizaciones { get; set; } = null!;
     public DbSet<Actividad> Actividades { get; set; } = null!;
+    public DbSet<Usuario> Usuarios { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Aplicar configuraciones
         modelBuilder.ApplyConfiguration(new ConfiguracionVoluntario());
         modelBuilder.ApplyConfiguration(new ConfiguracionHoras());
         modelBuilder.ApplyConfiguration(new ConfiguracionCertificado());
         modelBuilder.ApplyConfiguration(new ConfiguracionOrganizacion());
         modelBuilder.ApplyConfiguration(new ConfiguracionActividad());
+        modelBuilder.ApplyConfiguration(new ConfiguracionUsuario());
     }
 }

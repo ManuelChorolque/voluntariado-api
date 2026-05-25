@@ -1,9 +1,12 @@
 ﻿using APLICACION.DTOs.Horas;
 using APLICACION.CasosUso.Horas;
+using API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class HorasVoluntariadoController : ControllerBase
@@ -13,6 +16,7 @@ namespace API.Controllers
         private readonly ObtenerHoraPorIdHandler _obtenerPorIdHandler;
         private readonly CalcularHorasTotalesHandler _calcularTotalesHandler;
         private readonly EliminarHorasHandler _eliminarHandler;
+        private readonly CurrentUser _currentUser;
         private readonly ILogger<HorasVoluntariadoController> _logger;
 
         public HorasVoluntariadoController(
@@ -21,6 +25,7 @@ namespace API.Controllers
             ObtenerHoraPorIdHandler obtenerPorIdHandler,
             CalcularHorasTotalesHandler calcularTotalesHandler,
             EliminarHorasHandler eliminarHandler,
+            CurrentUser currentUser,
             ILogger<HorasVoluntariadoController> logger)
         {
             _registrarHandler = registrarHandler;
@@ -28,10 +33,12 @@ namespace API.Controllers
             _obtenerPorIdHandler = obtenerPorIdHandler;
             _calcularTotalesHandler = calcularTotalesHandler;
             _eliminarHandler = eliminarHandler;
+            _currentUser = currentUser;
             _logger = logger;
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,Organizacion")]
         public async Task<ActionResult<IEnumerable<HorasRespuestaDTO>>> ObtenerTodos()
         {
             try
@@ -55,6 +62,9 @@ namespace API.Controllers
                 if (horas == null)
                     return NotFound();
 
+                if (_currentUser.EsVoluntario && horas.VoluntarioId != _currentUser.VoluntarioId)
+                    return Forbid();
+
                 return Ok(horas);
             }
             catch (Exception ex)
@@ -65,6 +75,7 @@ namespace API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Organizacion")]
         public async Task<ActionResult<HorasRespuestaDTO>> Registrar([FromBody] RegistrarHorasDTO dto)
         {
             try
@@ -83,6 +94,7 @@ namespace API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin,Organizacion")]
         public async Task<IActionResult> Eliminar(int id)
         {
             try
@@ -102,6 +114,9 @@ namespace API.Controllers
         {
             try
             {
+                if (_currentUser.EsVoluntario && voluntarioId != _currentUser.VoluntarioId)
+                    return Forbid();
+
                 var horas = await _obtenerTodosHandler.Ejecutar(voluntarioId: voluntarioId);
                 return Ok(horas);
             }
@@ -132,6 +147,9 @@ namespace API.Controllers
         {
             try
             {
+                if (_currentUser.EsVoluntario && voluntarioId != _currentUser.VoluntarioId)
+                    return Forbid();
+
                 var total = await _calcularTotalesHandler.Ejecutar(voluntarioId);
                 return Ok(total);
             }

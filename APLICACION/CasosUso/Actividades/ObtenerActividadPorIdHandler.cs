@@ -18,7 +18,18 @@ namespace APLICACION.CasosUso.Actividades
         public async Task<ActividadRespuestaDTO?> Ejecutar(int id)
         {
             var actividad = await _repositorio.ObtenerPorIdAsync(id);
-            return actividad == null ? null : _mapper.Map<ActividadRespuestaDTO>(actividad);
+            if (actividad == null) return null;
+
+            var dto = _mapper.Map<ActividadRespuestaDTO>(actividad);
+            dto.Voluntarios = actividad.VoluntariosAsignados.Select(v => new VoluntarioResumenDTO
+            {
+                Id = v.Id,
+                NombreCompleto = $"{v.Nombre} {v.Apellido}",
+                Email = v.Email,
+                Cedula = v.Cedula
+            }).ToList();
+
+            return dto;
         }
     }
 }

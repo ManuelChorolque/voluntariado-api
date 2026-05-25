@@ -1,4 +1,7 @@
+using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using AutoMapper;
 using Aplicacion.Mapping;
 using DOMINIO.Interfaces;
@@ -12,6 +15,9 @@ using APLICACION.CasosUso.Organizaciones;
 using APLICACION.CasosUso.Actividades;
 using APLICACION.CasosUso.Certificados;
 using APLICACION.CasosUso.Horas;
+using APLICACION.CasosUso.Auth;
+using APLICACION.Interfaces;
+using API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,12 +32,39 @@ var mapperConfig = new MapperConfiguration(cfg =>
 });
 builder.Services.AddSingleton(mapperConfig.CreateMapper());
 
+// Configurar JWT
+var jwtKey = builder.Configuration["Jwt:Key"]!;
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+    };
+});
+
 // Registrar repositorios
 builder.Services.AddScoped<IRepositorioVoluntarios, RepositorioVoluntarios>();
 builder.Services.AddScoped<IRepositorioHoras, RepositorioHoras>();
 builder.Services.AddScoped<IRepositorioCertificados, RepositorioCertificados>();
 builder.Services.AddScoped<IRepositorioOrganizaciones, RepositorioOrganizaciones>();
 builder.Services.AddScoped<IRepositorioActividades, RepositorioActividades>();
+builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
+
+// Registrar servicios
+builder.Services.AddScoped<ITokenServicio, TokenServicio>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<CurrentUser>();
 
 // Registrar casos de uso (handlers)
 builder.Services.AddScoped<CrearVoluntarioHandler>();
@@ -52,6 +85,11 @@ builder.Services.AddScoped<ObtenerActividadPorIdHandler>();
 builder.Services.AddScoped<ObtenerActividadesAbiertasHandler>();
 builder.Services.AddScoped<AsignarVoluntarioHandler>();
 builder.Services.AddScoped<EliminarActividadHandler>();
+builder.Services.AddScoped<ObtenerActividadesPorVoluntarioHandler>();
+builder.Services.AddScoped<ActualizarActividadHandler>();
+builder.Services.AddScoped<IniciarActividadHandler>();
+builder.Services.AddScoped<CancelarActividadHandler>();
+builder.Services.AddScoped<CompletarActividadHandler>();
 
 builder.Services.AddScoped<GenerarCertificadoHandler>();
 builder.Services.AddScoped<ObtenerCertificadosHandler>();
@@ -66,6 +104,10 @@ builder.Services.AddScoped<ObtenerHorasHandler>();
 builder.Services.AddScoped<ObtenerHoraPorIdHandler>();
 builder.Services.AddScoped<CalcularHorasTotalesHandler>();
 builder.Services.AddScoped<EliminarHorasHandler>();
+
+// Registrar handlers de autenticacion
+builder.Services.AddScoped<RegisterHandler>();
+builder.Services.AddScoped<LoginHandler>();
 
 // Registrar servicios externos
 builder.Services.AddScoped<ServicioCorreo>();
@@ -112,6 +154,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

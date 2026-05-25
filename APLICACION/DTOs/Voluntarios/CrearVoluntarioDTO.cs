@@ -1,6 +1,4 @@
-﻿using APLICACION.DTOs.Actividadades;
-
-namespace APLICACION.DTOs.Voluntarios
+﻿namespace APLICACION.DTOs.Voluntarios
 {
     public class CrearVoluntarioDTO
     {
@@ -11,5 +9,6 @@ namespace APLICACION.DTOs.Voluntarios
         public string Direccion { get; set; } = string.Empty;
         public string Cedula { get; set; } = string.Empty;
         public DateTime? FechaNacimiento { get; set; }
+        public int? OrganizacionId { get; set; }
     }
 }

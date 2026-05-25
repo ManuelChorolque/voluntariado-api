@@ -1,6 +1,4 @@
-﻿using APLICACION.DTOs.Actividadades;
-
-namespace APLICACION.DTOs.Voluntarios
+﻿namespace APLICACION.DTOs.Voluntarios
 {
     public class VoluntarioRespuestaDTO
     {
@@ -13,6 +11,7 @@ namespace APLICACION.DTOs.Voluntarios
         public DateTime FechaRegistro { get; set; }
         public string Estado { get; set; } = string.Empty;
         public decimal HorasTotales { get; set; }
+        public int? OrganizacionId { get; set; }
         public string? NombreOrganizacion { get; set; }
     }
 }

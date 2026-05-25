@@ -1,9 +1,12 @@
 ﻿using APLICACION.DTOs.Voluntarios;
 using APLICACION.CasosUso.Voluntarios;
+using API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class VoluntariosController : ControllerBase
@@ -13,6 +16,7 @@ namespace API.Controllers
         private readonly ObtenerVoluntarioPorIdHandler _obtenerPorIdHandler;
         private readonly ActualizarVoluntarioHandler _actualizarHandler;
         private readonly EliminarVoluntarioHandler _eliminarHandler;
+        private readonly CurrentUser _currentUser;
         private readonly ILogger<VoluntariosController> _logger;
 
         public VoluntariosController(
@@ -21,6 +25,7 @@ namespace API.Controllers
             ObtenerVoluntarioPorIdHandler obtenerPorIdHandler,
             ActualizarVoluntarioHandler actualizarHandler,
             EliminarVoluntarioHandler eliminarHandler,
+            CurrentUser currentUser,
             ILogger<VoluntariosController> logger)
         {
             _crearHandler = crearHandler;
@@ -28,15 +33,19 @@ namespace API.Controllers
             _obtenerPorIdHandler = obtenerPorIdHandler;
             _actualizarHandler = actualizarHandler;
             _eliminarHandler = eliminarHandler;
+            _currentUser = currentUser;
             _logger = logger;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<VoluntarioRespuestaDTO>>> ObtenerTodos()
+        [Authorize(Roles = "Admin,Organizacion")]
+        public async Task<ActionResult<IEnumerable<VoluntarioRespuestaDTO>>> ObtenerTodos(
+            int pageNumber = 1, int pageSize = 10, string? busquedaNombre = null)
         {
             try
             {
-                var voluntarios = await _obtenerTodosHandler.Ejecutar();
+                var orgId = _currentUser.EsOrganizacion ? _currentUser.OrganizacionId : null;
+                var voluntarios = await _obtenerTodosHandler.Ejecutar(pageNumber, pageSize, busquedaNombre, orgId);
                 return Ok(voluntarios);
             }
             catch (Exception ex)
@@ -51,9 +60,15 @@ namespace API.Controllers
         {
             try
             {
+                if (_currentUser.EsVoluntario && _currentUser.VoluntarioId != id)
+                    return Forbid();
+
                 var voluntario = await _obtenerPorIdHandler.Ejecutar(id);
                 if (voluntario == null)
                     return NotFound();
+
+                if (_currentUser.EsOrganizacion && _currentUser.OrganizacionId != voluntario.OrganizacionId)
+                    return Forbid();
 
                 return Ok(voluntario);
             }
@@ -65,12 +80,16 @@ namespace API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Organizacion")]
         public async Task<ActionResult<VoluntarioRespuestaDTO>> Crear([FromBody] CrearVoluntarioDTO dto)
         {
             try
             {
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
+
+                if (_currentUser.EsOrganizacion)
+                    dto.OrganizacionId = _currentUser.OrganizacionId;
 
                 var voluntario = await _crearHandler.Ejecutar(dto);
                 return CreatedAtAction(nameof(ObtenerPorId), new { id = voluntario.Id }, voluntario);
@@ -83,6 +102,7 @@ namespace API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin,Organizacion")]
         public async Task<ActionResult<VoluntarioRespuestaDTO>> Actualizar(int id, [FromBody] ActualizarVoluntarioDTO dto)
         {
             try
@@ -104,6 +124,7 @@ namespace API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Eliminar(int id)
         {
             try
@@ -119,6 +140,7 @@ namespace API.Controllers
         }
 
         [HttpGet("organizacion/{organizacionId}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<VoluntarioRespuestaDTO>>> ObtenerPorOrganizacion(int organizacionId)
         {
             try

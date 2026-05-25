@@ -4,20 +4,20 @@ using APLICACION.DTOs.Actividadades;
 
 namespace APLICACION.CasosUso.Actividades
 {
-    public class ObtenerActividadesAbiertasHandler
+    public class ObtenerActividadesPorVoluntarioHandler
     {
         private readonly IRepositorioActividades _repositorio;
         private readonly IMapper _mapper;
 
-        public ObtenerActividadesAbiertasHandler(IRepositorioActividades repositorio, IMapper mapper)
+        public ObtenerActividadesPorVoluntarioHandler(IRepositorioActividades repositorio, IMapper mapper)
         {
             _repositorio = repositorio;
             _mapper = mapper;
         }
 
-        public async Task<List<ActividadRespuestaDTO>> Ejecutar(int? excluirVoluntarioId = null)
+        public async Task<List<ActividadRespuestaDTO>> Ejecutar(int voluntarioId)
         {
-            var actividades = await _repositorio.ObtenerActividadesAbiertasAsync(excluirVoluntarioId);
+            var actividades = await _repositorio.ObtenerPorVoluntarioAsync(voluntarioId);
             return _mapper.Map<List<ActividadRespuestaDTO>>(actividades);
         }
     }

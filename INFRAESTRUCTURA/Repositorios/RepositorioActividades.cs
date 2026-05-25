@@ -15,7 +15,7 @@ namespace INFRAESTRUCTURA.Repositorios
             _contexto = contexto;
         }
 
-        public async Task<IEnumerable<Actividad>> ObtenerTodosAsync(int pageNumber = 1, int pageSize = 10, int? organizacionId = null, string? busquedaNombre = null)
+        public async Task<IEnumerable<Actividad>> ObtenerTodosAsync(int pageNumber = 1, int pageSize = 10, int? organizacionId = null, string? busquedaNombre = null, DateTime? fechaDesde = null, DateTime? fechaHasta = null)
         {
             var query = _contexto.Actividades
                 .Include(a => a.Organizacion)
@@ -27,6 +27,12 @@ namespace INFRAESTRUCTURA.Repositorios
 
             if (!string.IsNullOrWhiteSpace(busquedaNombre))
                 query = query.Where(a => a.Nombre.Contains(busquedaNombre));
+
+            if (fechaDesde.HasValue)
+                query = query.Where(a => a.FechaInicio >= fechaDesde.Value);
+
+            if (fechaHasta.HasValue)
+                query = query.Where(a => a.FechaFin <= fechaHasta.Value);
 
             return await query
                 .Skip((pageNumber - 1) * pageSize)
@@ -50,10 +56,24 @@ namespace INFRAESTRUCTURA.Repositorios
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Actividad>> ObtenerActividadesAbiertasAsync()
+        public async Task<IEnumerable<Actividad>> ObtenerActividadesAbiertasAsync(int? excluirVoluntarioId = null)
+        {
+            var query = _contexto.Actividades
+                .Where(a => a.Estado == EstadoActividad.Abierta || a.Estado == EstadoActividad.EnProgreso)
+                .Include(a => a.Organizacion)
+                .Include(a => a.VoluntariosAsignados)
+                .AsQueryable();
+
+            if (excluirVoluntarioId.HasValue)
+                query = query.Where(a => !a.VoluntariosAsignados.Any(v => v.Id == excluirVoluntarioId.Value));
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<IEnumerable<Actividad>> ObtenerPorVoluntarioAsync(int voluntarioId)
         {
             return await _contexto.Actividades
-                .Where(a => a.Estado == EstadoActividad.Abierta || a.Estado == EstadoActividad.EnProgreso)
+                .Where(a => a.VoluntariosAsignados.Any(v => v.Id == voluntarioId))
                 .Include(a => a.Organizacion)
                 .Include(a => a.VoluntariosAsignados)
                 .ToListAsync();

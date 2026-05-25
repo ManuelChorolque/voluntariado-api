@@ -15,10 +15,9 @@ namespace APLICACION.CasosUso.Actividades
             _mapper = mapper;
         }
 
-        public async Task<List<ActividadRespuestaDTO>> Ejecutar(int pageNumber = 1, int pageSize = 10, int? organizacionId = null, string? busquedaNombre = null)
+        public async Task<List<ActividadRespuestaDTO>> Ejecutar(int pageNumber = 1, int pageSize = 10, int? organizacionId = null, string? busquedaNombre = null, DateTime? fechaDesde = null, DateTime? fechaHasta = null)
         {
-            // Obtener actividades con paginación
-            var actividades = await _repositorio.ObtenerTodosAsync(pageNumber, pageSize, organizacionId, busquedaNombre);
+            var actividades = await _repositorio.ObtenerTodosAsync(pageNumber, pageSize, organizacionId, busquedaNombre, fechaDesde, fechaHasta);
             return _mapper.Map<List<ActividadRespuestaDTO>>(actividades);
         }
     }

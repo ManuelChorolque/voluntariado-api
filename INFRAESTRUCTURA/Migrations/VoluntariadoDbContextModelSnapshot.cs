@@ -257,6 +257,64 @@ namespace INFRAESTRUCTURA.Migrations
                     b.ToTable("Organizaciones", (string)null);
                 });
 
+            modelBuilder.Entity("DOMINIO.Entidades.Usuario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Apellido")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("FechaRegistro")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("OrganizacionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Rol")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UltimoAcceso")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("VoluntarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("OrganizacionId");
+
+                    b.HasIndex("VoluntarioId");
+
+                    b.ToTable("Usuarios", (string)null);
+                });
+
             modelBuilder.Entity("DOMINIO.Entidades.Voluntario", b =>
                 {
                     b.Property<int>("Id")
@@ -389,6 +447,23 @@ namespace INFRAESTRUCTURA.Migrations
                         .IsRequired();
 
                     b.Navigation("Actividad");
+
+                    b.Navigation("Voluntario");
+                });
+
+            modelBuilder.Entity("DOMINIO.Entidades.Usuario", b =>
+                {
+                    b.HasOne("DOMINIO.Entidades.Organizacion", "Organizacion")
+                        .WithMany()
+                        .HasForeignKey("OrganizacionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("DOMINIO.Entidades.Voluntario", "Voluntario")
+                        .WithMany()
+                        .HasForeignKey("VoluntarioId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Organizacion");
 
                     b.Navigation("Voluntario");
                 });

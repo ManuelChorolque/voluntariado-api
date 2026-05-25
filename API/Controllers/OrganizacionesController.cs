@@ -1,9 +1,12 @@
 ﻿using APLICACION.DTOs.Organizaciones;
 using APLICACION.CasosUso.Organizaciones;
+using API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class OrganizacionesController : ControllerBase
@@ -13,6 +16,7 @@ namespace API.Controllers
         private readonly ObtenerOrganizacionPorIdHandler _obtenerPorIdHandler;
         private readonly ActualizarOrganizacionHandler _actualizarHandler;
         private readonly EliminarOrganizacionHandler _eliminarHandler;
+        private readonly CurrentUser _currentUser;
         private readonly ILogger<OrganizacionesController> _logger;
 
         public OrganizacionesController(
@@ -21,6 +25,7 @@ namespace API.Controllers
             ObtenerOrganizacionPorIdHandler obtenerPorIdHandler,
             ActualizarOrganizacionHandler actualizarHandler,
             EliminarOrganizacionHandler eliminarHandler,
+            CurrentUser currentUser,
             ILogger<OrganizacionesController> logger)
         {
             _crearHandler = crearHandler;
@@ -28,6 +33,7 @@ namespace API.Controllers
             _obtenerPorIdHandler = obtenerPorIdHandler;
             _actualizarHandler = actualizarHandler;
             _eliminarHandler = eliminarHandler;
+            _currentUser = currentUser;
             _logger = logger;
         }
 
@@ -60,12 +66,13 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener organizaci\u00f3n por ID");
+                _logger.LogError(ex, "Error al obtener organización por ID");
                 return StatusCode(500, "Error interno del servidor");
             }
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<OrganizacionRespuestaDTO>> Crear([FromBody] CrearOrganizacionDTO dto)
         {
             try
@@ -78,12 +85,13 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al crear organizaci\u00f3n");
+                _logger.LogError(ex, "Error al crear organización");
                 return StatusCode(500, "Error interno del servidor");
             }
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<OrganizacionRespuestaDTO>> Actualizar(int id, [FromBody] CrearOrganizacionDTO dto)
         {
             try
@@ -96,12 +104,13 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al actualizar organizaci\u00f3n");
+                _logger.LogError(ex, "Error al actualizar organización");
                 return StatusCode(500, "Error interno del servidor");
             }
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Eliminar(int id)
         {
             try
@@ -111,7 +120,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al eliminar organizaci\u00f3n");
+                _logger.LogError(ex, "Error al eliminar organización");
                 return StatusCode(500, "Error interno del servidor");
             }
         }

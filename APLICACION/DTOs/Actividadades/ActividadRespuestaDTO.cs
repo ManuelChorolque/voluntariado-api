@@ -16,6 +16,7 @@ namespace APLICACION.DTOs.Actividadades
         public int VoluntariosAsignados { get; set; }
         public string Estado { get; set; } = string.Empty;
         public DateTime FechaRegistro { get; set; }
+        public List<VoluntarioResumenDTO> Voluntarios { get; set; } = new();
     }
 
 }

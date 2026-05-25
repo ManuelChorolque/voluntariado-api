@@ -1,9 +1,12 @@
 ﻿using APLICACION.DTOs.Certificados;
 using APLICACION.CasosUso.Certificados;
+using API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class CertificadosController : ControllerBase
@@ -15,6 +18,7 @@ namespace API.Controllers
         private readonly ObtenerCertificadosPorOrganizacionHandler _obtenerPorOrganizacionHandler;
         private readonly DescargarCertificadoHandler _descargarHandler;
         private readonly EliminarCertificadoHandler _eliminarHandler;
+        private readonly CurrentUser _currentUser;
         private readonly ILogger<CertificadosController> _logger;
 
         public CertificadosController(
@@ -25,6 +29,7 @@ namespace API.Controllers
             ObtenerCertificadosPorOrganizacionHandler obtenerPorOrganizacionHandler,
             DescargarCertificadoHandler descargarHandler,
             EliminarCertificadoHandler eliminarHandler,
+            CurrentUser currentUser,
             ILogger<CertificadosController> logger)
         {
             _generarHandler = generarHandler;
@@ -34,10 +39,12 @@ namespace API.Controllers
             _obtenerPorOrganizacionHandler = obtenerPorOrganizacionHandler;
             _descargarHandler = descargarHandler;
             _eliminarHandler = eliminarHandler;
+            _currentUser = currentUser;
             _logger = logger;
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,Organizacion")]
         public async Task<ActionResult<IEnumerable<CertificadoRespuestaDTO>>> ObtenerTodos()
         {
             try
@@ -61,6 +68,9 @@ namespace API.Controllers
                 if (certificado == null)
                     return NotFound();
 
+                if (_currentUser.EsVoluntario && certificado.VoluntarioId != _currentUser.VoluntarioId)
+                    return Forbid();
+
                 return Ok(certificado);
             }
             catch (Exception ex)
@@ -71,6 +81,7 @@ namespace API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Organizacion")]
         public async Task<ActionResult<CertificadoRespuestaDTO>> Generar([FromBody] GenerarCertificadoDTO dto)
         {
             try
@@ -89,6 +100,7 @@ namespace API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin,Organizacion")]
         public async Task<IActionResult> Eliminar(int id)
         {
             try
@@ -108,6 +120,9 @@ namespace API.Controllers
         {
             try
             {
+                if (_currentUser.EsVoluntario && voluntarioId != _currentUser.VoluntarioId)
+                    return Forbid();
+
                 var certificados = await _obtenerPorVoluntarioHandler.Ejecutar(voluntarioId);
                 return Ok(certificados);
             }
@@ -119,6 +134,7 @@ namespace API.Controllers
         }
 
         [HttpGet("organizacion/{organizacionId}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<CertificadoRespuestaDTO>>> ObtenerPorOrganizacion(int organizacionId)
         {
             try
@@ -128,7 +144,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener certificados por organizaci\u00f3n");
+                _logger.LogError(ex, "Error al obtener certificados por organización");
                 return StatusCode(500, "Error interno del servidor");
             }
         }

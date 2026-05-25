@@ -12,6 +12,7 @@ namespace DOMINIO.Enumeradores
         Abierta = 2,
         EnProgreso = 3,
         Completada = 4,
-        Cancelada = 5
+        Cancelada = 5,
+        Cerrada = 6
     }
 }

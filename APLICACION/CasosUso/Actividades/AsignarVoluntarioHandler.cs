@@ -1,5 +1,5 @@
-﻿using DOMINIO.Interfaces;
-
+﻿using DOMINIO.Enumeradores;
+using DOMINIO.Interfaces;
 
 namespace APLICACION.CasosUso.Actividades
 {
@@ -18,41 +18,27 @@ namespace APLICACION.CasosUso.Actividades
 
         public async Task<bool> Ejecutar(int actividadId, int voluntarioId)
         {
-            // Validar que la actividad existe
-            var actividad = await _repositorioActividades.ObtenerPorIdAsync(actividadId);
-            if (actividad == null)
-            {
-                throw new KeyNotFoundException($"No se encontró la actividad con ID {actividadId}");
-            }
+            var actividad = await _repositorioActividades.ObtenerPorIdAsync(actividadId)
+                ?? throw new KeyNotFoundException($"No se encontró la actividad con ID {actividadId}");
 
-            // Validar que el voluntario existe
-            var voluntario = await _repositorioVoluntarios.ObtenerPorIdAsync(voluntarioId);
-            if (voluntario == null)
-            {
-                throw new KeyNotFoundException($"No se encontró el voluntario con ID {voluntarioId}");
-            }
+            var voluntario = await _repositorioVoluntarios.ObtenerPorIdAsync(voluntarioId)
+                ?? throw new KeyNotFoundException($"No se encontró el voluntario con ID {voluntarioId}");
 
-            // Validar que no haya alcanzado el número máximo de voluntarios
             if (actividad.VoluntariosAsignados.Count >= actividad.VoluntariosRequeridos)
-            {
                 throw new InvalidOperationException("La actividad ha alcanzado el número máximo de voluntarios requeridos");
-            }
 
-            // Validar que el voluntario no esté ya asignado
             if (actividad.VoluntariosAsignados.Any(v => v.Id == voluntarioId))
-            {
                 throw new InvalidOperationException("El voluntario ya está asignado a esta actividad");
-            }
 
-            // Asignar voluntario
             actividad.VoluntariosAsignados.Add(voluntario);
 
-            // Guardar cambios
-            await _repositorioActividades.ActualizarAsync(actividad);
+            // Si se llenaron los cupos, cerrar la actividad automáticamente
+            if (actividad.VoluntariosAsignados.Count >= actividad.VoluntariosRequeridos)
+                actividad.Estado = EstadoActividad.Cerrada;
+
             await _repositorioActividades.GuardarCambiosAsync();
 
             return true;
         }
     }
-
 }

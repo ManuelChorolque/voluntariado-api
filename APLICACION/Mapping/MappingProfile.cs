@@ -22,6 +22,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => src.Estado.ToString()))
             .ForMember(dest => dest.Cedula, opt => opt.MapFrom(src => src.Cedula))
             .ForMember(dest => dest.HorasTotales, opt => opt.MapFrom(src => src.HorasTotales))
+            .ForMember(dest => dest.OrganizacionId, opt => opt.MapFrom(src => src.OrganizacionId))
             .ForMember(dest => dest.NombreOrganizacion, opt => opt.MapFrom(src => src.Organizacion != null ? src.Organizacion.Nombre : null));
 
         // Mapeos para Horas
@@ -52,6 +53,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.NombreOrganizacion, opt => opt.MapFrom(src => src.Organizacion.Nombre))
             .ForMember(dest => dest.FechaRegistro, opt => opt.MapFrom(src => src.FechaRegistro))
             .ForMember(dest => dest.VoluntariosAsignados, opt => opt.MapFrom(src => src.VoluntariosAsignados.Count))
+            .ForMember(dest => dest.Voluntarios, opt => opt.Ignore())
             .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => src.Estado.ToString()));
     }
 }
